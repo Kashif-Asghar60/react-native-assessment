@@ -1,5 +1,9 @@
 # Career On Track - React Native Assessment Submission
 
+
+
+https://github.com/user-attachments/assets/37203b2e-50a3-4897-b386-ed4d49899c33
+ 
 ## ✅ Core Tasks Completed
 
 ### Task 1: Login Screen Implementation
@@ -21,6 +25,7 @@
 - Keyboard avoiding view for better UX
 
 ---
+
 
 ### Task 2: Goals List Screen Implementation
 **File:** `mobile/src/screens/GoalsScreen.tsx`
