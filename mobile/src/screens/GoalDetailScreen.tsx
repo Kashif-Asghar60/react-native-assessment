@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  PanResponder,
+  Dimensions,
 } from 'react-native';
 import { goalService } from '../services/api';
 
@@ -18,6 +20,48 @@ interface Goal {
   progress: number;
   createdAt: string;
   updatedAt: string;
+}
+
+// Custom Progress Slider Component
+function ProgressSlider({ value, onChange }: { value: number; onChange: (progress: number) => void }) {
+  const handleTrackPress = (event: any) => {
+    const { width } = event.nativeEvent.target.props.style;
+    const x = event.nativeEvent.locationX;
+    const newProgress = Math.round((x / width) * 100);
+    onChange(Math.max(0, Math.min(newProgress, 100)));
+  };
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderMove: (evt, gestureState) => {
+        // Get the width of the track from the event
+        const maxWidth = Dimensions.get('window').width - 40;
+        const newX = Math.max(0, Math.min(gestureState.x0 + gestureState.dx, maxWidth));
+        const newProgress = Math.round((newX / maxWidth) * 100);
+        onChange(Math.max(0, Math.min(newProgress, 100)));
+      },
+    })
+  ).current;
+
+  const trackWidth = Dimensions.get('window').width - 40;
+
+  return (
+    <View
+      style={[styles.sliderTrack, { width: trackWidth }]}
+      onStartShouldSetResponder={() => true}
+      onResponderGrant={handleTrackPress}
+      {...panResponder.panHandlers}
+    >
+      <View
+        style={[
+          styles.sliderFill,
+          { width: `${value}%` },
+        ]}
+      />
+    </View>
+  );
 }
 
 // TODO: Task 4 - Complete Goal Detail Screen
@@ -57,10 +101,43 @@ export default function GoalDetailScreen({ route, navigation }: any) {
     if (!goal) return;
 
     try {
-      const updated = await goalService.updateGoal(goal.id, { status: newStatus });
+      // Auto-update progress based on status
+      let progress = 0;
+      if (newStatus === 'in_progress') {
+        progress = 50;
+      } else if (newStatus === 'completed') {
+        progress = 100;
+      }
+
+      const updated = await goalService.updateGoal(goal.id, { 
+        status: newStatus,
+        progress: progress
+      });
       setGoal(updated);
     } catch (error) {
       Alert.alert('Error', 'Failed to update goal status');
+    }
+  };
+
+  const handleUpdateProgress = async (newProgress: number) => {
+    if (!goal) return;
+
+    try {
+      // Determine status based on progress
+      let newStatus = 'not_started';
+      if (newProgress > 0 && newProgress < 100) {
+        newStatus = 'in_progress';
+      } else if (newProgress === 100) {
+        newStatus = 'completed';
+      }
+
+      const updated = await goalService.updateGoal(goal.id, { 
+        progress: newProgress,
+        status: newStatus
+      });
+      setGoal(updated);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update progress');
     }
   };
 
@@ -140,11 +217,10 @@ export default function GoalDetailScreen({ route, navigation }: any) {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Progress</Text>
-          <View style={styles.progressBar}>
-            <View
-              style={[styles.progressFill, { width: `${goal.progress}%` }]}
-            />
-          </View>
+          <ProgressSlider 
+            value={goal.progress} 
+            onChange={handleUpdateProgress}
+          />
           <Text style={styles.progressText}>{goal.progress}%</Text>
         </View>
 
@@ -239,6 +315,70 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#007AFF',
+    marginTop: 8,
+  },
+  sliderTrack: {
+    height: 8,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginVertical: 12,
+  },
+  sliderFill: {
+    height: '100%',
+    backgroundColor: '#007AFF',
+  },
+  progressPercentage: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#007AFF',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  sliderContainer: {
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  sliderThumb: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#007AFF',
+    position: 'absolute',
+    top: -9,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  statusIndicator: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#007AFF',
+    textAlign: 'center',
+    marginTop: 12,
+  },
+  progressControls: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 12,
+  },
+  progressButton: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    backgroundColor: '#007AFF',
+    alignItems: 'center',
+  },
+  progressResetButton: {
+    backgroundColor: '#999',
+  },
+  progressButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
   },
   meta: {
     marginTop: 8,

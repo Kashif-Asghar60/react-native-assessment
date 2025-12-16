@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // For iOS simulator, use 'http://localhost:3000/api'
 // For physical device, use your computer's IP address (e.g., 'http://192.168.1.100:3000/api')
 const API_BASE_URL = __DEV__ 
-  ? 'http://localhost:3000/api' 
+  ? 'http://192.168.0.100:3000/api' 
   : 'https://api.careerontrack.ai/api'; // Change to your production URL
 
 const api = axios.create({
@@ -13,6 +13,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000, // 10 second timeout
 });
 
 // Add token to requests

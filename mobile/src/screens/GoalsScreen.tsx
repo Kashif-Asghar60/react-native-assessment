@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { goalService } from '../services/api';
 
 interface Goal {
@@ -40,6 +41,12 @@ export default function GoalsScreen({ navigation }: any) {
     loadGoals();
   }, []);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      loadGoals();
+    }, [])
+  );
+
   const loadGoals = async () => {
     // TODO: Implement goal fetching
     // 1. Set loading to true
@@ -48,16 +55,15 @@ export default function GoalsScreen({ navigation }: any) {
     // 4. Show error with Alert.alert if it fails
     // 5. Set loading to false when done
     
-    // Your code here:
-    // try {
-    //   setLoading(true);
-    //   const response = await goalService.getGoals();
-    //   setGoals(response.goals || []);
-    // } catch (error) {
-    //   Alert.alert('Error', 'Failed to load goals');
-    // } finally {
-    //   setLoading(false);
-    // }
+    try {
+      setLoading(true);
+      const response = await goalService.getGoals();
+      setGoals(response.goals || []);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to load goals');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const onRefresh = async () => {
@@ -105,6 +111,15 @@ export default function GoalsScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>My Goals</Text>
+        <TouchableOpacity
+          style={styles.createButton}
+          onPress={() => navigation.navigate('CreateGoal')}
+        >
+          <Text style={styles.createButtonText}>+ Add Goal</Text>
+        </TouchableOpacity>
+      </View>
       <FlatList
         data={goals}
         renderItem={renderGoal}
@@ -122,6 +137,33 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 12,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1a1a1a',
+  },
+  createButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+  },
+  createButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
   centerContainer: {
     flex: 1,

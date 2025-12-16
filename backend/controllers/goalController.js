@@ -1,5 +1,8 @@
 import { goals } from '../models/data.js';
 import { getOrderServiceEndpoint } from './userController.js';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
 
 /**
  * Get all goals for authenticated user

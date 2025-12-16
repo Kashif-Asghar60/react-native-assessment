@@ -26,9 +26,10 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'CareerOnTrack API is running' });
 });
 
-// Start server
-app.listen(PORT, () => {
+// Start server - Listen on all network interfaces (0.0.0.0) to allow connections from mobile devices
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`🌐 Also accessible at http://192.168.0.100:${PORT}`);
   console.log(`📱 API ready for mobile app integration`);
 });
 

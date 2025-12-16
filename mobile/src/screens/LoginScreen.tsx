@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 
 // TODO: Task 1 - Complete Login Screen
@@ -21,8 +22,9 @@ import { useAuth } from '../context/AuthContext';
 // Hint: The form validation is already done, just implement handleLogin function!
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('demo@careerontrack.ai');
+  const [password, setPassword] = useState('demo123');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
@@ -59,15 +61,14 @@ export default function LoginScreen() {
       return;
     }
 
-    // Your code here:
-    // setLoading(true);
-    // try {
-    //   await login(email, password);
-    // } catch (error: any) {
-    //   Alert.alert('Login Failed', error.response?.data?.error || 'Invalid email or password');
-    // } finally {
-    //   setLoading(false);
-    // }
+    setLoading(true);
+    try {
+      await login(email, password);
+    } catch (error: any) {
+      Alert.alert('Login Failed', error.response?.data?.error || 'Invalid email or password');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -83,7 +84,7 @@ export default function LoginScreen() {
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Email</Text>
             <TextInput
-              style={[styles.input, errors.email && styles.inputError]}
+              style={[styles.input, errors.email ? styles.inputError : null]}
               placeholder="Enter your email"
               value={email}
               onChangeText={setEmail}
@@ -96,14 +97,26 @@ export default function LoginScreen() {
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={[styles.input, errors.password && styles.inputError]}
-              placeholder="Enter your password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoCapitalize="none"
-            />
+            <View style={styles.passwordInputWrapper}>
+              <TextInput
+                style={[styles.input, styles.passwordInput, errors.password ? styles.inputError : null]}
+                placeholder="Enter your password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+              />
+              <TouchableOpacity 
+                style={styles.eyeIcon}
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                <Ionicons 
+                  name={showPassword ? 'eye' : 'eye-off'} 
+                  size={20} 
+                  color="#999"
+                />
+              </TouchableOpacity>
+            </View>
             {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
           </View>
 
@@ -170,6 +183,20 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
     backgroundColor: '#f9f9f9',
+  },
+  passwordInputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  passwordInput: {
+    flex: 1,
+    paddingRight: 45,
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: 12,
+    padding: 8,
   },
   inputError: {
     borderColor: '#ff4444',
